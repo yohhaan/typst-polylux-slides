@@ -7,7 +7,7 @@
   author: [Author Name],
   shortAuthor: [Footer Author],
   venue: [Venue],
-  date: [Month YYYY],
+  date: datetime.today().display("[month repr:long] [day], [year]"),
   showPageCount: true,
 )
 
@@ -18,7 +18,22 @@
   disable-markdown: false,
 )
 
-#titleSlide()[Some text on title slide]
+//To add an Abstract Slide
+#abstractSlide(
+  // title: [#context slidesSubtitle.get()],
+  // picture: [#image("path.jpg", width: 80%)],
+  // author: [Author],
+  // role: [Position],
+  // url: "https://example.com",
+)[
+  #set text(size: 15pt)
+
+  #lorem(200)
+]
+
+#titleSlide()[
+  //Some text on title slide
+]
 
 #newSlide(title: [Outline])[
   #toolbox.all-sections((sections, current) => enum(tight: false, ..sections))
@@ -26,14 +41,17 @@
 
 #toolbox.register-section("Introduction")
 #newSlide(title: [Introduction])[
+
   - Just some text with a #link("https://github.com/yohhaan/typst-polylux-slides")[link]
   - A custom cite [1]
-  - and the image below appearing later
+  - and the image below appearing later, see polylux guide for more on animations
+
+  #context [
     #show: later
     #image("themes/uw-theme/uw-crest.svg")
+  ]
 
-  #v(1fr)
-
+  #set align(bottom)
   #citeBlock(color: gray)[
     #set text(size: 10pt)
     [1] Paper Title - Author et al. - #link("https://doi.org/")[Venue], YYYY
@@ -44,7 +62,7 @@
 
 #toolbox.register-section("Columns Demo")
 #newSlide(title: [Columns Demo])[
-  #toolbox.side-by-side[
+  #toolbox.side-by-side(columns: (1.5fr, 1fr))[
     #align(center)[=== Column 1]
     #alertBlock(title: [Alert Block demo])[
       Description block demo
@@ -70,18 +88,22 @@
   )
 ]
 
+#blackSlide(title: [Result or finding])[
+]
+
 #toolbox.register-section("Conclusion")
 #newSlide(title: [Conclusion])[
   #toolbox.pdfpc.end-slide
 
   #align(center + horizon)[
     #toolbox.side-by-side[
-      #figure(
+      //custom fig
+      #fig(
         image("themes/uw-theme/cdis.svg"),
-        caption: [CDIS logo],
+        [CDIS logo],
       )
     ][
-      #figure(
+      #fig(
         table(
           columns: (auto, auto),
           align: horizon,
@@ -89,14 +111,17 @@
           [stat 1], [entry 1],
           [stat 2], [entry 2],
         ),
-        caption: [Table caption],
+        [Table caption],
       )
     ]
   ]
   In bottom right footer, is a (clickable) outline overview of where we are at in the presentation.
 ]
 
+// This tells the template to not consider following slides in total number of slides
 #metadata("Additional unnumbered slides") <unnumbered>
+
+//Additional slides can be commented out if none
 #sectionSlide(title: [Additional Slides])[
 ]
 

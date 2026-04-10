@@ -2,14 +2,14 @@
 
 #let fontHeader = "Roboto"
 #let primaryColor = rgb("#C5050C")
-#let headerSize = 32pt
+#let headerSize = 28pt
 #let subheaderSize = 24pt
-#let textSize = 20pt
-#let footerSize = 9pt
+#let textSize = 18pt
+#let footerSize = 12pt
 
 #let outerMargin = 3mm
 #let innerMargin = 11mm
-#let topMargin = 10mm
+#let topMargin = 16mm
 #let bottomMargin = 11mm
 
 #let green = rgb(0, 150, 130)
@@ -84,8 +84,44 @@
   }
 }
 
+#let publicationBlock(color: [], award: false, body) = {
+  let text-color = if luma(color).components().at(0) >= 70% {
+    black
+  } else {
+    white
+  }
+  block(
+    radius: (
+      top: 3mm,
+      bottom: 3mm,
+    ),
+    clip: true,
+    inset: 0.3em,
+    above: 5pt,
+    below: 5pt,
+    spacing: 0.3em,
+    fill: color,
+    width: 80%,
+    stroke: if award { (paint: black, thickness: 2pt, dash: "dashed") },
+  )[
+    #set align(center)
+    #set text(fill: text-color, size: 15pt)
+    #show link: set text(fill: text-color)
+    #body]
+}
+
+#let fig(block1, caption) = {
+  [
+    #set align(center)
+    #block1
+    #v(-15pt)
+    #text(size: 16pt, fill: gray)[#caption]]
+}
+
+
 #let roundedBlock(radius: 3mm, body) = {
   block(
+    width: auto,
     radius: (
       top: radius,
       bottom: radius,
@@ -95,51 +131,71 @@
   )
 }
 
-#let colorBlock(title: [], color: [], body) = {
+#let colorBlock(title: none, color: [], width: 100%, body) = {
   let title-color = if luma(color).components().at(0) >= 80% {
     black
   } else {
     white
   }
   roundedBlock()[
-    #block(
-      width: 100%,
-      inset: (x: 0.5em, top: 0.3em, bottom: 0.4em),
-      fill: gradient.linear(
-        (color, 0%),
-        (color, 87%),
-        (color.lighten(85%), 100%),
-        dir: ttb,
-      ),
-      text(fill: title-color, title),
-    )
-    #set text(size: 15pt)
-    #block(
-      inset: 0.5em,
-      above: 0pt,
-      fill: color.lighten(85%),
-      width: 100%,
-      body,
-    )
+    #if title != none [
+      #block(
+        radius: (
+          top: 3mm,
+          // bottom: 3mm,
+        ),
+        clip: true,
+        width: width,
+        inset: (x: 0.5em, top: 0.3em, bottom: 0.4em),
+        fill: gradient.linear(
+          (color, 0%),
+          (color, 87%),
+          (color.lighten(85%), 100%),
+          dir: ttb,
+        ),
+        text(fill: title-color, title),
+      )
+      #set text(size: 15pt)
+      #block(
+        inset: 0.5em,
+        above: 0pt,
+        fill: color.lighten(85%),
+        width: width,
+        body,
+      )
+    ] else [
+      #set text(size: 15pt)
+      #block(
+        radius: (
+          top-right: 3mm,
+          // bottom: 3mm,
+        ),
+        inset: 0.5em,
+        above: 0pt,
+        fill: color.lighten(85%),
+        width: width,
+        body,
+      )
+    ]
   ]
 }
 
-#let infoBlock(title: [], body) = {
-  colorBlock(title: title, color: green, body)
+#let infoBlock(title: none, width: 100%, body) = {
+  colorBlock(title: title, color: green, width: width, body)
 }
 
-#let exampleBlock(title: [], body) = {
-  colorBlock(title: title, color: blue, body)
+#let exampleBlock(title: none, width: 100%, body) = {
+  colorBlock(title: title, color: blue, width: width, body)
 }
 
-#let alertBlock(title: [], body) = {
-  colorBlock(title: title, color: red, body)
+#let alertBlock(title: none, width: 100%, body) = {
+  colorBlock(title: title, color: red, width: width, body)
 }
 
 
 #let citeBlock(color: [], body) = {
   roundedBlock()[
-    #set text(size: 15pt)
+    #set text(size: footerSize)
     #block(
       inset: 0.5em,
       above: 0pt,
@@ -149,6 +205,8 @@
     )
   ]
 }
+
+#let focus(body) = text(fill: primaryColor, body)
 
 #let slides(
   title: none,
@@ -163,14 +221,18 @@
 ) = {
   set page(
     paper: "presentation-16-9",
+    // fill: white.darken(2%),
     margin: 0pt,
-    header-ascent: 0pt,
-    footer-descent: 5pt,
+    header-ascent: 5pt,
+    footer-descent: 10pt,
   )
 
+  //styling edits
   set text(font: ("Source Sans 3", "Roboto"), size: textSize)
-  show heading: set text(fill: primaryColor)
+  show heading: set text(fill: primaryColor, weight: "regular")
   show link: set text(fill: blue)
+  set list(marker: (text(primaryColor, [•]), text(primaryColor, [•]), text(gray, [-])))
+
 
   slidesTitle.update(title)
   slidesSubtitle.update(subtitle)
@@ -189,10 +251,51 @@
   slidesDate.update(date)
   slidesShowPageCount.update(showPageCount)
 
-  set list(marker: text(fill: primaryColor, sym.circle.filled))
 
   body
   pdfpc-file
+}
+
+
+#let abstractSlide(
+  title: [#context slidesTitle.get()],
+  picture: [#image("avatar.jpg", width: 80%)],
+  author: [#context slidesAuthor.get()],
+  role: [Position],
+  url: "https://example.com/",
+  body,
+) = {
+  show: slide
+  set page(
+    margin: outerMargin,
+    header: none,
+    footer: none,
+    background: none,
+  )
+  align(center + horizon)[
+    #text(
+      font: fontHeader,
+      fill: primaryColor,
+      weight: "regular",
+      size: headerSize,
+    )[#title]]
+
+
+  toolbox.side-by-side(columns: (.25fr, .75fr))[
+    // Speaker pic + name + affiliation
+    #set align(center + horizon)
+    #link(url)[#picture]
+    #text(font: fontHeader, weight: "medium", size: subheaderSize)[#context slidesAuthor.get()]\
+    #text(font: fontHeader, weight: "thin", size: textSize)[#role]\
+    #text(size: textSize)[#link(url)]
+    #link("https://cdis.wisc.edu/")[#image("uw-madison.svg")]
+
+  ][
+    #set text(size: textSize)
+    #set align(horizon)
+    // Abstract
+    #body
+  ]
 }
 
 #let titleSlide(body) = {
@@ -204,35 +307,26 @@
     background: align(top, image("uw.svg", width: 100%)),
   )
   pad(left: innerMargin, right: 6mm, top: topMargin)[
-    // Title
-    #place(dy: 42mm, text(
-      font: fontHeader,
-      fill: primaryColor,
-      weight: "bold",
-      size: headerSize,
-      context slidesTitle.get(),
-    ))
-    // Subtitle
-    #place(dy: 54mm)[
-      #set text(font: fontHeader, fill: primaryColor, weight: "regular", size: subheaderSize)
-      #context slidesSubtitle.get()
-    ]
-    // Author
-    #place(dy: 70mm)[
-      #set text(font: fontHeader, weight: "medium", size: 18pt)
-      #context slidesAuthor.get()
-    ]
-    // Author
-    #place(dy: 78mm)[
-      #set text(font: fontHeader, weight: "thin", size: 18pt)
-      #context slidesDate.get() • #context slidesVenue.get()
-    ]
-    // Body
-    #place(dy: 88mm, [
+    #place(dy: 42mm)[
+      // Title
+      #text(
+        font: fontHeader,
+        fill: primaryColor,
+        weight: "regular",
+        size: headerSize,
+        context slidesTitle.get(),
+      )\
+      //Subtitle
+      #text(font: fontHeader, fill: primaryColor, weight: "thin", size: subheaderSize, context slidesSubtitle.get())\
+      // Author
+      #text(font: fontHeader, weight: "medium", size: textSize, context slidesAuthor.get())\
+      // Date - Venue
+      #text(font: fontHeader, weight: "thin", size: textSize)[#context slidesDate.get() • #context slidesVenue.get()]\
+      // Body
       #set text(size: textSize)
       #set block(above: 1.2em)
       #body
-    ])
+    ]
   ]
   //logos
   align(
@@ -249,8 +343,65 @@
   )
 }
 
+
+// #let titleSlide(body) = {
+//   show: slide
+//   set page(
+//     margin: 0pt,
+//     header: none,
+//     footer: none,
+//     background: align(top, image("uw.svg", width: 100%)),
+//   )
+//   pad(left: innerMargin, right: 6mm, top: topMargin)[
+//     // Title
+//     #place(dy: 42mm, text(
+//       font: fontHeader,
+//       fill: primaryColor,
+//       weight: "regular",
+//       size: headerSize,
+//       context slidesTitle.get(),
+//     ))
+//     // Subtitle
+//     #place(dy: 54mm)[
+//       #set text(font: fontHeader, fill: primaryColor, weight: "thin", size: subheaderSize)
+//       #context slidesSubtitle.get()
+//     ]
+//     // Author
+//     #place(dy: 78mm)[
+//       #set text(font: fontHeader, weight: "medium", size: textSize)
+//       #context slidesAuthor.get()
+//     ]
+//     // Date - Venue
+//     #place(dy: 86mm)[
+//       #set text(font: fontHeader, weight: "thin", size: textSize)
+//       #context slidesDate.get() • #context slidesVenue.get()
+//     ]
+//     // Body
+//     #place(dy: 96mm, [
+//       #set text(size: textSize)
+//       #set block(above: 1.2em)
+//       #body
+//     ])
+//   ]
+//   //logos
+//   align(
+//     bottom,
+//     pad(x: outerMargin, y: outerMargin)[
+//       #grid(
+//         columns: (1.5fr, outerMargin, 1.5fr, 2fr),
+//         [#link("https://cdis.wisc.edu/")[#image("cdis.svg")]],
+//         [],
+//         [#link("https://madsp.cs.wisc.edu/")[#image("madsnp.svg")]],
+//         [],
+//       )
+//     ],
+//   )
+// }
+
 #let sectionSlide(title: none, register: none, body) = {
-  if register != none {
+  if register == true {
+    toolbox.register-section(title)
+  } else if register != none {
     toolbox.register-section(register)
   }
   show: slide
@@ -262,7 +413,7 @@
   )
   pad(left: innerMargin, right: 6mm, top: topMargin)[
     // Title
-    #place(dy: 54mm, text(font: fontHeader, fill: primaryColor, weight: "bold", size: 32pt, title))
+    #place(dy: 54mm, text(font: fontHeader, fill: primaryColor, weight: "regular", size: headerSize, title))
     //Body
     #place(dy: 70mm, [
       #set text(textSize)
@@ -272,33 +423,60 @@
   ]
 }
 
+#let blackSlide(title: none, register: none, body) = {
+  if register == true {
+    toolbox.register-section(title)
+  } else if register != none {
+    toolbox.register-section(register)
+  }
+  show: slide
+  set page(
+    margin: 0pt,
+    header: none,
+    footer: none,
+    fill: gray,
+  )
+  pad(left: innerMargin, right: 6mm, top: 0pt)[
+    #set text(fill: white, size: textSize)
+    #align(center + horizon)[#text(size: headerSize)[#title]]
+    //Body
+    #body
+  ]
+}
+
 
 #let newSlide(title: [], body) = {
   // Header
-  let header = block(width: 100%, height: 100%, inset: (x: innerMargin))[
-    #grid(
-      columns: (auto, 1fr),
-      [
-        #set text(font: fontHeader, fill: primaryColor, size: headerSize, weight: "bold")
-        #block(height: 100%)[
-          #align(left + horizon, title)
-        ]
-      ],
-      [
-        #align(right + horizon)[
-          #image("uw-crest.svg", height: 15mm)
-        ]
-      ],
-    )
-  ]
+  let header = table(
+    align: (left + horizon, right + horizon),
+    columns: (auto, 1fr),
+    inset: innerMargin,
+    rows: 1fr,
+    stroke: (bottom: rgb("#d8d8d8") + 1pt, left: 0pt, right: 0pt, top: 0pt),
+    //TITLE
+    block(
+      width: 100%,
+      height: 100%,
+    )[
+      #set text(font: fontHeader, fill: primaryColor, size: headerSize, weight: "regular")
+      #title
+    ],
+    //RIGHT
+    table.cell(
+      inset: (right: 80pt),
+    )[
+      #image("uw-crest.svg", height: 35pt)
+    ],
+  )
   // Content block
   let wrapped-body = block(
     width: 100%,
     height: 100%,
     inset: (x: innerMargin),
   )[
+    #set align(horizon)
     #set text(textSize)
-    #set block(above: 1.2em)
+    // #set block(above: 1.2em)
     #body
   ]
   // Footer
@@ -330,7 +508,7 @@
   set page(
     header: header,
     footer: footer,
-    margin: (top: 22.5mm, bottom: bottomMargin),
+    margin: (top: topMargin, bottom: bottomMargin),
   )
   slide(wrapped-body)
 }
